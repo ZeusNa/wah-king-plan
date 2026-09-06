@@ -1,0 +1,1076 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#7cc4f8" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<link rel="icon" type="image/png" href="./icon-192.png" />
+<title>華景計劃</title>
+<style>
+  :root {
+    --blue: #3b82f6;
+    --blue-deep: #2563eb;
+    --ink: #1e3a5f;
+    --muted: #5b7a9d;
+    --glass: rgba(255, 255, 255, 0.38);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --ok: #0f9d8f;
+    --warn: #e0457b;
+    --pink: #f8a5c2;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang TC", "Noto Sans TC", "Heiti TC", sans-serif;
+    color: var(--ink);
+    background: linear-gradient(168deg, #d3dfed 0%, #bfd0e2 32%, #d5e1ee 62%, #e7edf5 100%);
+    background-attachment: fixed;
+    min-height: 100dvh;
+    padding-bottom: 92px;
+    overflow-x: hidden;
+  }
+  /* 🌧️ 雨滴（兩個主題都有：雨天玻璃窗感） */
+  .rain { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .drop {
+    position: absolute; top: -14%; width: 2px; height: 16px; border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.6));
+    animation: rainfall linear infinite;
+  }
+  @keyframes rainfall {
+    0% { transform: translateY(-12vh) rotate(10deg); opacity: 0; }
+    12% { opacity: .9; }
+    100% { transform: translateY(112vh) rotate(10deg); opacity: 0; }
+  }
+  .wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 14px 14px 0; }
+  header.top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 4px 12px;
+  }
+  header.top h1 { font-size: 24px; margin: 0; letter-spacing: 1px; }
+  header.top .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .btn {
+    border: none; cursor: pointer; font-family: inherit;
+    background: var(--glass); border: 1px solid var(--glass-border);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    color: var(--ink); border-radius: 14px; padding: 9px 14px; font-size: 14px;
+  }
+  .btn.primary { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; border-color: rgba(255,255,255,.5); }
+  .btn.small { padding: 6px 10px; font-size: 12px; border-radius: 10px; }
+  .btn.active { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: #fff; }
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(18px) saturate(135%);
+    -webkit-backdrop-filter: blur(18px) saturate(135%);
+    border-radius: 22px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 28px rgba(80,110,150,.16), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .card h2 { margin: 0 0 2px; font-size: 17px; }
+  .card .desc { margin: 0 0 10px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat {
+    background: rgba(255,255,255,.45); border-radius: 16px; padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,.55);
+  }
+  .stat .lb { font-size: 11.5px; color: var(--muted); }
+  .stat .val { font-size: 19px; font-weight: 700; margin-top: 2px; }
+  .stat .hint { font-size: 10.5px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .val.ok { color: var(--ok); } .val.warn { color: var(--warn); }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 13px; color: var(--ink); font-weight: 600; margin-bottom: 5px; }
+  .field .hint { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  .field input[type=text] {
+    width: 100%; font-size: 16px; padding: 11px 14px;
+    background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.7);
+    border-radius: 14px; color: var(--ink); font-family: inherit;
+  }
+  .field input:focus { outline: 2px solid var(--blue); outline-offset: 0; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .switch-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: rgba(255,255,255,.45); border-radius: 16px; padding: 11px 14px;
+    border: 1px solid rgba(255,255,255,.55); margin-bottom: 10px;
+  }
+  .switch-row .t { font-size: 14px; font-weight: 600; }
+  .switch-row .s { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .switch { position: relative; width: 46px; height: 26px; flex-shrink: 0; cursor: pointer; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .track {
+    position: absolute; inset: 0; border-radius: 999px; background: #b8c9de; transition: .2s;
+  }
+  .switch .dot {
+    position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .switch input:checked + .track { background: var(--blue); }
+  .switch input:checked + .track + .dot { transform: translateX(20px); }
+  .school {
+    text-align: left; width: 100%; cursor: pointer; margin-bottom: 10px;
+    background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.6);
+    border-radius: 18px; padding: 12px 14px; font-family: inherit; color: var(--ink);
+  }
+  .school.sel { border: 2px solid var(--blue); background: rgba(219,234,254,.75); }
+  .school .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .school .nm { font-size: 15.5px; font-weight: 700; }
+  .school .fee { font-size: 13px; color: var(--muted); }
+  .school .pg { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+  .badge {
+    font-size: 10.5px; padding: 3px 8px; border-radius: 999px;
+    background: rgba(255,255,255,.65); color: var(--ink);
+  }
+  .badge.b-ok { background: rgba(15,157,143,.15); color: var(--ok); }
+  .badge.b-warn { background: rgba(224,69,123,.12); color: var(--warn); }
+  .badge.b-blue { background: rgba(59,130,246,.14); color: var(--blue-deep); }
+  .school .note { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+  .school .win { font-size: 11px; color: var(--blue-deep); margin-top: 4px; }
+  .warnbox {
+    background: rgba(224,69,123,.1); border: 1px solid rgba(224,69,123,.25);
+    border-radius: 16px; padding: 10px 12px; font-size: 12.5px; color: #b02455;
+    margin-bottom: 8px; line-height: 1.55;
+  }
+  .okbox {
+    background: rgba(15,157,143,.1); border: 1px solid rgba(15,157,143,.25);
+    border-radius: 16px; padding: 10px 12px; font-size: 12.5px; color: #0b7a6f;
+  }
+  .chart { display: flex; align-items: flex-end; gap: 6px; height: 150px; margin-top: 4px; }
+  .col { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+  .col .v { font-size: 9.5px; color: var(--muted); white-space: nowrap; }
+  .bars { position: relative; width: 100%; height: 96px; background: rgba(255,255,255,.25); border-radius: 8px; overflow: hidden; }
+  .bars .mid { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(30,58,95,.25); }
+  .bars .up { position: absolute; bottom: 50%; left: 12%; width: 76%; background: linear-gradient(180deg,#93c5fd,#3b82f6); border-radius: 5px 5px 0 0; }
+  .bars .dn { position: absolute; top: 50%; left: 12%; width: 76%; background: linear-gradient(180deg,#f472b6,#e0457b); border-radius: 0 0 5px 5px; }
+  .col .y { font-size: 9.5px; color: var(--muted); margin-top: 4px; }
+  .tl { position: relative; padding-left: 20px; }
+  .tl::before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: rgba(59,130,246,.3); }
+  .tl .item { position: relative; padding-bottom: 13px; }
+  .tl .item::before {
+    content: "🌷"; position: absolute; left: -20px; top: 0; font-size: 13px;
+  }
+  .tl .y { font-size: 11px; font-weight: 700; color: var(--blue-deep); }
+  .tl .t { font-size: 13.5px; font-weight: 600; margin-top: 1px; }
+  .tl .d { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin-top: 2px; }
+  .task {
+    display: flex; gap: 10px; align-items: flex-start; cursor: pointer;
+    background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.6);
+    border-radius: 16px; padding: 11px 13px; margin-bottom: 9px;
+  }
+  .task .box {
+    width: 21px; height: 21px; border-radius: 7px; flex-shrink: 0; margin-top: 1px;
+    border: 2px solid #93c5fd; background: rgba(255,255,255,.6);
+    display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff;
+  }
+  .task.done .box { background: var(--blue); }
+  .task.done .tt { text-decoration: line-through; color: var(--muted); }
+  .task .tt { font-size: 13.5px; font-weight: 600; }
+  .task .dd { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+  .phase { font-size: 12px; font-weight: 700; color: var(--blue-deep); margin: 12px 0 8px; }
+  .phase:first-child { margin-top: 0; }
+  nav.bottom {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    background: rgba(255,255,255,.55);
+    backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border-top: 1px solid rgba(255,255,255,.7);
+    display: flex; justify-content: space-around; padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+  }
+  nav.bottom button {
+    background: none; border: none; cursor: pointer; font-family: inherit;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 10.5px; color: var(--muted); padding: 4px 10px; border-radius: 12px;
+  }
+  nav.bottom button.on { color: var(--blue-deep); font-weight: 700; background: rgba(147,197,253,.35); }
+  nav.bottom .ic { font-size: 20px; }
+  .progress { height: 10px; border-radius: 999px; background: rgba(255,255,255,.5); overflow: hidden; }
+  .progress > div { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#93c5fd,#3b82f6); transition: width .3s; }
+  .prog-label { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
+  input[type=range] { width: 100%; accent-color: var(--blue); }
+  .tuition-row {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255,255,255,.45); border-radius: 14px; padding: 10px 13px; margin-bottom: 8px;
+  }
+  .tuition-row .tt { font-size: 13px; }
+  .tuition-row .amt { font-size: 16px; font-weight: 700; }
+  .hidden { display: none; }
+
+  /* ============ 🌃 深色模式（雨夜城市 · Rainy City Window） ============ */
+  body[data-theme="dark"] {
+    --ink: #e8f0f8;
+    --muted: #94a9c0;
+    --blue: #6fb6e8;
+    --blue-deep: #a8d8f0;
+    --ok: #7fd1b9;
+    --warn: #e58ba6;
+    background:
+      radial-gradient(ellipse at 22% 78%, rgba(255,170,90,.10), transparent 55%),
+      radial-gradient(ellipse at 78% 70%, rgba(120,190,255,.10), transparent 52%),
+      linear-gradient(180deg, #0b1220 0%, #121d33 45%, #1a2947 100%);
+    background-attachment: fixed;
+  }
+  /* 城市天際線剪影 + 地平線燈光 */
+  body[data-theme="dark"]::before {
+    content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 46vh;
+    z-index: 0; pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, #0c1526 0 30px, transparent 30px 38px, #0c1526 38px 64px, transparent 64px 72px, #0c1526 72px 92px, transparent 92px 100px) bottom/100% 110px no-repeat,
+      repeating-linear-gradient(90deg, #0e1a30 0 46px, transparent 46px 58px, #0e1a30 58px 88px, transparent 88px 96px, #0e1a30 96px 128px, transparent 128px 136px) bottom/100% 72px no-repeat,
+      linear-gradient(180deg, transparent, rgba(255,170,90,.05) 92%, rgba(255,170,90,.09));
+  }
+  body[data-theme="dark"] .card {
+    background: rgba(13,20,36,.62);
+    border-color: rgba(140,170,210,.26);
+    backdrop-filter: blur(24px) saturate(130%);
+    -webkit-backdrop-filter: blur(24px) saturate(130%);
+    box-shadow: 0 12px 38px rgba(0,0,0,.5), inset 0 1px 0 rgba(190,220,255,.07);
+  }
+  body[data-theme="dark"] .btn { color: #eaf3fb; }
+  body[data-theme="dark"] .btn.primary,
+  body[data-theme="dark"] .btn.active { background: linear-gradient(135deg, #8fd0f2, #4f9fd8); color: #0a1626; border-color: rgba(190,225,255,.4); }
+  body[data-theme="dark"] .stat,
+  body[data-theme="dark"] .switch-row,
+  body[data-theme="dark"] .school,
+  body[data-theme="dark"] .task,
+  body[data-theme="dark"] .tuition-row { background: rgba(150,180,220,.08); border-color: rgba(140,170,210,.24); }
+  body[data-theme="dark"] .school.sel { background: rgba(111,182,232,.14); border: 2px solid #6fb6e8; }
+  body[data-theme="dark"] .field input { background: rgba(6,10,20,.5); border-color: rgba(140,170,210,.3); color: #eaf3fb; }
+  body[data-theme="dark"] .field input:focus { outline-color: #6fb6e8; }
+  body[data-theme="dark"] .switch .track { background: #24344f; }
+  body[data-theme="dark"] .badge { background: rgba(150,180,220,.14); color: #e2edf7; }
+  body[data-theme="dark"] .badge.b-blue { background: rgba(111,182,232,.18); }
+  body[data-theme="dark"] .badge.b-ok { background: rgba(127,209,185,.16); }
+  body[data-theme="dark"] .badge.b-warn { background: rgba(229,139,166,.16); }
+  body[data-theme="dark"] .warnbox { background: rgba(229,139,166,.14); border-color: rgba(229,139,166,.38); color: #f2b3c5; }
+  body[data-theme="dark"] .okbox { background: rgba(127,209,185,.12); border-color: rgba(127,209,185,.32); color: #b5e3d5; }
+  body[data-theme="dark"] .chart .bars { background: rgba(150,180,220,.08); }
+  body[data-theme="dark"] .bars .mid { background: rgba(200,220,240,.25); }
+  body[data-theme="dark"] .bars .up { background: linear-gradient(180deg, #9fd8f0, #4f9fd8); }
+  body[data-theme="dark"] .bars .dn { background: linear-gradient(180deg, #e58ba6, #c2436b); }
+  body[data-theme="dark"] .tl::before { background: rgba(111,182,232,.35); }
+  body[data-theme="dark"] .task .box { border-color: #6fb6e8; background: rgba(150,180,220,.14); }
+  body[data-theme="dark"] nav.bottom { background: rgba(8,13,24,.92); border-top-color: rgba(140,170,210,.25); }
+  body[data-theme="dark"] nav.bottom button.on { background: rgba(111,182,232,.22); color: #a8d8f0; }
+  body[data-theme="dark"] .progress { background: rgba(150,180,220,.14); }
+  body[data-theme="dark"] .progress > div { background: linear-gradient(90deg, #9fd8f0, #4f9fd8); }
+</style>
+</head>
+<body>
+<div class="rain">
+  <div class="drop" style="left:8%;  animation-duration:1.3s; animation-delay:0s"></div>
+  <div class="drop" style="left:18%; animation-duration:1.1s; animation-delay:.4s"></div>
+  <div class="drop" style="left:29%; animation-duration:1.5s; animation-delay:.9s"></div>
+  <div class="drop" style="left:40%; animation-duration:1.2s; animation-delay:.2s"></div>
+  <div class="drop" style="left:51%; animation-duration:1.4s; animation-delay:.7s"></div>
+  <div class="drop" style="left:62%; animation-duration:1.1s; animation-delay:1.1s"></div>
+  <div class="drop" style="left:73%; animation-duration:1.5s; animation-delay:.3s"></div>
+  <div class="drop" style="left:83%; animation-duration:1.2s; animation-delay:.8s"></div>
+  <div class="drop" style="left:92%; animation-duration:1.4s; animation-delay:.5s"></div>
+  <div class="drop" style="left:35%; animation-duration:1.6s; animation-delay:1.4s"></div>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>華景計劃</h1>
+      <div class="sub" id="subTitle">華富邨 → MSW → 350呎居屋 · 雨天玻璃</div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="btn small" id="btnTheme">🎨 換主題</button>
+      <button class="btn small" id="btnReset">重設</button>
+      <button class="btn small" id="btnBackup">💾</button>
+    </div>
+  </header>
+  <main id="main"></main>
+</div>
+
+<div id="backupModal" class="hidden" style="position:fixed;inset:0;z-index:99;background:rgba(20,35,60,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="card" style="width:100%;max-width:420px;margin:0">
+    <h2>數據備份 💾</h2>
+    <p class="desc">數字同待辦會自動存喺每部機（唔會自動同步）。下載一份「備份檔」放喺 iCloud／WhatsApp／Email，第時任何機都還原到。</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn primary" onclick="exportBackup()">⬇️ 下載備份檔</button>
+      <label class="btn" style="text-align:center;cursor:pointer">⬆️ 揀備份檔還原
+        <input type="file" accept=".json,application/json" id="importFile" style="display:none" onchange="importBackup(event)">
+      </label>
+      <button class="btn" onclick="document.getElementById('backupModal').classList.add('hidden')">關閉</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom" id="nav">
+  <button data-tab="home"><span class="ic">🏠</span>總覽</button>
+  <button data-tab="budget"><span class="ic">💰</span>預算</button>
+  <button data-tab="study"><span class="ic">🎓</span>升學</button>
+  <button data-tab="hos"><span class="ic">🏡</span>居屋</button>
+  <button data-tab="repay"><span class="ic">💳</span>還款</button>
+  <button data-tab="tasks"><span class="ic">✅</span>待辦</button>
+</nav>
+
+<script>
+"use strict";
+
+// ================= 資料 =================
+const SCHOOLS = {
+  cityu: { nm:"城大", pg:"MSW P71 兼讀／combined", pt:363000, ft:363000, py:3, fy:2, ftss:true,
+    win:"每年 9 月中–翌年 1 月中（2026-27：09-16 至 01-16，滾動審批）",
+    note:"校友優勢、GPA 3.34 達 preferred 線、夜晚+周六上課、一次實習可喺自己機構。FTSS 合資格。" },
+  bu: { nm:"浸大", pg:"MSocSc in Social Work", pt:346840, ft:366940, py:2, fy:2, ftss:false,
+    win:"每年 10 月初開申請，本地生 6 月底截止（2027 屆：10-05 至 06-30，額滿即止）",
+    note:"兼讀只得 2 年（全港最快畢業！），學費已包 2 個實習。全程英語授課。FTSS 未入選（2026-27）。" },
+  cuhk: { nm:"中大", pg:"MSSc in Social Work", pt:371000, ft:374000, py:3, fy:2, ftss:false,
+    win:"每年 9 月初開；第1輪 10-20／第2輪 12-07／第3輪 03-22（2027-28 屆）",
+    note:"2026-27 兼讀收費（每年調整）。記得報 MSSc 唔係 MSW。實習粵語為主。FTSS 未入選。" },
+  polyu: { nm:"理大", pg:"MSW（只設兼讀制）", pt:400400, ft:null, py:3, fy:0, ftss:true,
+    win:"每年早輪 10-20、主輪 2-25 截止（2027 屆：10-20 至 02-25）",
+    note:"只有兼讀制（無全日制）。2027-28 收費（你入學個年再調整）。FTSS 合資格。37 學分。" },
+  hku: { nm:"港大", pg:"Master of Social Work", pt:369600, ft:369600, py:3, fy:2, ftss:true,
+    win:"主輪 10-03 – 11-03；次輪至翌年 2-23（2026-27 屆）",
+    note:"你話難入都照交，當搏一搏。FTSS 合資格。全日制暑假 block 10 個星期，留唔到工。" },
+};
+
+const TASKS = [
+  { id:"save", ph:"而家", t:"開兩個儲蓄戶：主儲蓄 $6,000 + 應急金 $1,000", d:"出糧日自動轉。應急金儲到 3–6 個月生活費（約 $30,000–$60,000）就夠，之後轉返主儲蓄。" },
+  { id:"hukou", ph:"而家", t:"核實華富邨戶籍（華景樓）有你同爸爸", d:"去華富邨辦事處睇租約。綠表同重建優先資格都靠呢張紙。華景樓屬華富邨重建第 3 期（華翠+華景），房委會 2024 年 12 月公佈提前至 2034-35 遷入新華富邨第 1 期。" },
+  { id:"referees", ph:"而家", t:"搵定 2 位推薦人（今年內落單）", d:"教授／大學導師／舊上司／實習督導都得。好多人等搵先發現老師已經唔記得你——2027 年報名要用，而家就打招呼、定期 update 佢哋你嘅近況（返工、做義工）。" },
+  { id:"transcript", ph:"而家", t:"城大申請 official transcript + grading scheme", d:"GPA 3.34／4.3 分制 = B+、二等一級。中大申請時強制要 grading scheme。" },
+  { id:"guarantor", ph:"而家", t:"（可選）搵 ENLS 彌償人", d:"21 歲+、香港永久居民、有穩定人工。有擔保人先可以考慮借政府貸款頂住學費；冇就自己儲。" },
+  { id:"tax", ph:"開工後", t:"報稅填供養父母 + 全年同住額外", d:"爸爸 2026 年 58 歲：$27,500 + 額外 $27,500；2028 年滿 60 歲升到 $55,000 + $55,000。每月 $1,000 用轉賬，唔好現金。" },
+  { id:"boss", ph:"開工後", t:"諗清楚兼讀期間點保住全職", d:"城大／浸大上課都係夜晚＋週六，兼讀唔一定要減工時。若轉 part-time 得 $7,500／月，條數入不敷支——要靠 ENLS 或者遲一年入學。提早同機構傾實習安排。" },
+  { id:"volunteer", ph:"開工後", t:"儲社會服務經驗：定時做義工／參與機構活動", d:"面試同個人陳述都要料。PO（項目主任）喺社福／NGO 已經算行內工作（好牌！），加埋假日義工（長者、兒童、復康都得），每個月一兩次，2027 報名時就有嘢寫。" },
+  { id:"ielts", ph:"2027 春–秋", t:"考 IELTS（自願，加強競爭力）", d:"城大英文授課學士三間都多數豁免，但考咗更穩陣。目標 6.0–6.5。⏰ 2027 年 3–11 月考都得（成績 2 年有效，2028 年 9 月入學一定未過期；暑假考完、10 月報名時成績啱啱到手最理想）。" },
+  { id:"apply", ph:"2027 秋", t:"報 2028 兼讀：城大第一、浸大第二、中大／理大／港大照交（趕唔切就順延 2029）", d:"浸大兼讀只得 2 年（最快畢業，學費 $346,840）；理大只收兼讀。港大難入都照交當搏一搏。全部揀 part-time／combined。推薦人同 IELTS 未齊嘅話，2029 入學做後備，完全冇蝕底。" },
+  { id:"ftss", ph:"2028", t:"入學後申請 FTSS 獎學金（城大／理大／港大合資格）", d:"本地生最高補貼 $100,000，實付學費由 $363,000 降到約 $263,000；要簽承諾畢業後留港／大灣區發展。浸大、中大唔入選。名單每年更新。" },
+  { id:"enls", ph:"2028", t:"（可選）入學同時申請 ENLS", d:"終身限額 $419,400，只借學費；年息 2.173%（2026 官方）＋行政費 $285/年；畢業後最長 15 年還（「還款」頁有估算）。同 FTSS 唔可以同時攞（二揀一）。" },
+  { id:"graduate", ph:"2030-31", t:"畢業註冊 RSW，升 ASWO", d:"起薪約 $37,585（2026 年 MPS 16，每年見調整）。浸大路線最快 2030 年畢業。市道差就預咗先做住 PO／社福助理級。" },
+  { id:"hos", ph:"2032–35", t:"綠表二人 + 家有長者 + 華富邨清拆戶優先，抽 ≥350 呎", d:"爸爸聯名做業主。綠表豁免入息/資產審查，但截止前 24 個月至買入期間唔可以有住宅物業。買成就交回公屋。2026–30 唔好買。" },
+  { id:"gsh", ph:"2032–35", t:"留意綠置居：6 折定價、280 呎起", d:"綠表+清拆戶喺揀樓次序排第一，家有長者排第二；唔一定等居屋，價錢平一截。" },
+];
+
+// ================= 狀態 =================
+const KEY = "wah-king-plan-blue-v1";
+const DEFAULTS = {
+  salary:18845, rent:3000, dad:1000, living:5000, emergency:1000, currentSavings:0,
+  mode:"pt", hasEnls:false, hasFtss:false,
+  school:"cityu", tuition:363000, intakeYear:2028, ptYears:3, ftYears:2,
+  studySalary:7500, postGradSalary:18845, aswoDelay:12, aswoSalary:37585,
+  enlsRate:0.02173, enlsYears:15,
+  hosPrice:2200000, rate:0.035, years:30, buyYear:2034, dadBirthYear:1968,
+  hosMgmtFee:1200, travelSave:900,
+};
+let S = load();
+let TAB = "home";
+let TASKDONE = loadTasks();
+let THEME = "blue";
+try {
+  const t = localStorage.getItem(KEY + "-theme");
+  if (t === "dark" || t === "blue") THEME = t;
+  else if (t === "garden") { THEME = "dark"; try { localStorage.setItem(KEY + "-theme", "dark"); } catch(e) {} }
+} catch(e) {}
+if (location.search.includes("dark") || location.search.includes("garden")) THEME = "dark";
+if (location.search.includes("blue")) THEME = "blue";
+function applyTheme() {
+  document.body.setAttribute("data-theme", THEME);
+  const b = document.getElementById("btnTheme");
+  if (b) b.textContent = THEME === "blue" ? "🎨 換主題" : "🌙 深色模式";
+  const sub = document.getElementById("subTitle");
+  if (sub) sub.textContent = THEME === "blue"
+    ? "華富邨 → MSW → 350呎居屋 · 雨天玻璃"
+    : "華富邨 → MSW → 350呎居屋 · 深色模式";
+}
+function cycleTheme() {
+  THEME = THEME === "blue" ? "dark" : "blue";
+  try { localStorage.setItem(KEY + "-theme", THEME); } catch(e) {}
+  applyTheme();
+}
+
+function load() {
+  try { const raw = localStorage.getItem(KEY); if (raw) return Object.assign({}, DEFAULTS, JSON.parse(raw)); } catch(e) {}
+  return Object.assign({}, DEFAULTS);
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} }
+function loadTasks() {
+  try { const raw = localStorage.getItem(KEY + "-tasks"); if (raw) return JSON.parse(raw); } catch(e) {}
+  return {};
+}
+function saveTasks() { try { localStorage.setItem(KEY + "-tasks", JSON.stringify(TASKDONE)); } catch(e) {} }
+
+// ================= 計算 =================
+function hkd(n) { return "$" + Math.round(n).toLocaleString("en-HK"); }
+function fmtWan(n) {
+  const a = Math.abs(n);
+  if (a >= 100000) return (n<0?"−":"") + "$" + (a/10000).toFixed(a>=1000000?1:0) + "萬";
+  return (n<0?"−$":"$") + Math.round(a).toLocaleString("en-HK");
+}
+function mpfOf(s) { return s < 7100 ? 0 : Math.min(s*0.05, 1500); }
+function taxForYear(salary, dadAge) {
+  const annual = salary*12, mpf = mpfOf(salary)*12;
+  const parent = dadAge>=60 ? 110000 : dadAge>=55 ? 55000 : 0;
+  const chargeable = annual - mpf - 145000 - parent;
+  if (chargeable <= 0) return 0;
+  const bands = [50000,50000,50000,50000], rates = [0.02,0.06,0.10,0.14];
+  let left = chargeable, tax = 0;
+  for (let i=0;i<4;i++){ const t=Math.min(left,bands[i]); tax+=t*rates[i]; left-=t; if(left<=0) return tax; }
+  return tax + left*0.17;
+}
+function mortgage(principal, rate, years) {
+  const r = rate/12, n = years*12;
+  if (principal<=0||n<=0) return 0;
+  return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+}
+function monthlyFlow(salary, burn, dadAge) {
+  return salary - mpfOf(salary) - burn - taxForYear(salary, dadAge)/12;
+}
+function compute() {
+  const burn = S.rent + S.dad + S.living + S.emergency;
+  const mpf = mpfOf(S.salary);
+  const nowYear = new Date().getFullYear();
+  const dadAgeNow = nowYear - S.dadBirthYear;
+  const taxM = taxForYear(S.salary, dadAgeNow)/12;
+  const leftover = S.salary - mpf - burn - taxM;
+
+  const jobStart = new Date(2026,9,1);
+  const now = new Date();
+  const start = now > jobStart ? now : jobStart;
+  const intake = new Date(S.intakeYear,8,1);
+  const months = Math.max(0, (intake.getFullYear()-start.getFullYear())*12 + (intake.getMonth()-start.getMonth()));
+  const savingsAtIntake = S.currentSavings + leftover*months;
+  const emergencyAtIntake = S.emergency*months;
+
+  const subsidy = Math.min(Math.max(0, S.tuition-49500), 100000);
+  const ftssPay = Math.max(49500, S.tuition-subsidy);
+  const tuitionNeeded = S.hasEnls ? 0 : (S.hasFtss ? ftssPay : S.tuition);
+
+  const studyYears = S.mode==="pt" ? S.ptYears : S.ftYears;
+  const perYear = tuitionNeeded/studyYears;
+  const studyFlow = monthlyFlow(S.studySalary, burn, 60);
+  const balanceAtGrad = savingsAtIntake + studyFlow*studyYears*12 - tuitionNeeded;
+  const ptGap = Math.max(0, perYear - studyFlow*12);
+
+  // ENLS 還款估算（學資處 2026-27：年息 2.173%（2025-12-01 調整）、行政費 $285/年、還款期最長 15 年）
+  const enlsPerYear = S.tuition / studyYears;
+  let enlsBal = 0;
+  for (let k = 0; k < studyYears; k++) enlsBal = (enlsBal + enlsPerYear) * (1 + S.enlsRate);
+  const enlsAdmin = 285 * (studyYears + S.enlsYears);
+  const enlsTotal = enlsBal + enlsAdmin;
+  const enlsMonthly = mortgage(enlsTotal, S.enlsRate, S.enlsYears);
+  const enlsInt = enlsBal - S.tuition;
+
+  const gradYear = S.intakeYear + studyYears;
+  const aswoStartYear = gradYear + S.aswoDelay/12;
+  const monthsPost = Math.min(S.aswoDelay, Math.max(0,(S.buyYear - gradYear)*12));
+  const monthsAswo = Math.max(0,(S.buyYear - gradYear)*12 - monthsPost);
+  const postFlow = monthlyFlow(S.postGradSalary, burn, 60);
+  const aswoFlow = monthlyFlow(S.aswoSalary, burn, 60);
+
+  const savingsByBuy = savingsAtIntake - tuitionNeeded + studyFlow*studyYears*12
+    + postFlow*monthsPost + aswoFlow*monthsAswo;
+
+  const down = S.hosPrice*0.05;
+  const monthlyMortgage = mortgage(S.hosPrice - down, S.rate, S.years);
+  const dadAgeAtBuy = S.buyYear - S.dadBirthYear;
+  const enlsActive = !!S.hasEnls;
+  const monthlyBurden = (enlsActive ? enlsMonthly : 0) + monthlyMortgage;
+  const burdenRatio = S.aswoSalary > 0 ? monthlyBurden / S.aswoSalary : 0;
+  const aswoLeftover = aswoFlow - monthlyBurden;
+  const aswoLeftoverBuy = aswoLeftover + S.rent - S.hosMgmtFee;
+
+  const warnings = [];
+  if (S.mode==="pt" && !S.hasEnls && balanceAtGrad < 0)
+    warnings.push("⚠️ 兼讀期間人工得 $"+S.studySalary.toLocaleString("en-HK")+"／月，每月淨流 $"+Math.round(studyFlow).toLocaleString("en-HK")+"，畢業一刻積蓄會跌到 "+hkd(balanceAtGrad)+"——唔得。出路：保住全職（夜晚+週末上課）、申請 ENLS、或遲一年入學儲夠先讀。");
+  else if (S.mode==="pt" && !S.hasEnls && ptGap > 0)
+    warnings.push("兼讀期間每年學費約 "+hkd(perYear)+"，而兼讀月淨流只得 "+hkd(studyFlow)+"，要用入學前積蓄墊住，"+studyYears+" 年共要補約 "+hkd(ptGap*studyYears)+"。");
+  if (S.mode==="ft" && !S.hasEnls)
+    warnings.push("全日制無 ENLS 嘅話，學費加生活費差大約 $38 萬，而家呢盤數做唔到。");
+  if (savingsByBuy < down + 80000)
+    warnings.push("按而家速度，"+S.buyYear+" 年積蓄可能剛剛夠綠表首期，要預多啲雜費同裝修。");
+  if (monthlyMortgage/S.aswoSalary > 0.4)
+    warnings.push("月供超過 ASWO 入息 40%，揀平啲屋苑或者加長還款期。");
+
+  return { burn, mpf, taxM, leftover, months, savingsAtIntake, emergencyAtIntake,
+    studyFlow, balanceAtGrad, ptGap, tuitionNeeded, ftssPay, perYear, studyYears,
+    gradYear, savingsByBuy, down, monthlyMortgage, dadAgeAtBuy, aswoFlow, postFlow, warnings,
+    enlsPerYear, enlsBal, enlsAdmin, enlsTotal, enlsMonthly, enlsInt,
+    monthlyBurden, burdenRatio, aswoLeftover, aswoLeftoverBuy };
+}
+
+function balances() {
+  const c = compute();
+  const points = [];
+  const jobStart = new Date(2026,9,1);
+  const now = new Date();
+  const start = now > jobStart ? now : jobStart;
+  const end = new Date(S.buyYear,11,31);
+  const studyStart = new Date(S.intakeYear,8,1);
+  const gradDate = new Date(S.intakeYear + (S.mode==="pt"?S.ptYears:S.ftYears),8,1);
+  const aswoDate = new Date(gradDate); aswoDate.setMonth(aswoDate.getMonth()+S.aswoDelay);
+  let bal = S.currentSavings;
+  const t = new Date(start);
+  while (t <= end) {
+    const y = t.getFullYear();
+    let flow = c.leftover;
+    if (t >= studyStart && t < gradDate) {
+      flow = c.studyFlow;
+      const k = y - S.intakeYear;
+      if (t.getMonth()===8 && k>=0 && k<c.studyYears) bal -= c.perYear;
+    } else if (t >= gradDate && t < aswoDate) {
+      flow = c.postFlow;
+    } else if (t >= aswoDate) {
+      flow = c.aswoFlow;
+    }
+    bal += flow;
+    if (t.getMonth()===11) points.push({ year:y, balance:Math.round(bal) });
+    t.setMonth(t.getMonth()+1);
+  }
+  return points;
+}
+
+function milestones() {
+  const c = compute();
+  const jobStart = new Date(2026,9,1);
+  const now = new Date();
+  const t0 = (now > jobStart) ? new Date(now.getFullYear(), now.getMonth(), 1) : jobStart;
+  const studyStart = new Date(S.intakeYear,8,1);
+  const gradDate = new Date(S.intakeYear + (S.mode==="pt"?S.ptYears:S.ftYears),8,1);
+  const aswoDate = new Date(gradDate); aswoDate.setMonth(aswoDate.getMonth()+S.aswoDelay);
+  const end = new Date(S.buyYear,11,31);
+  const cp = [];
+  for (let y = t0.getFullYear(); y <= S.buyYear; y++) {
+    const j = new Date(y,5,30), d = new Date(y,11,31);
+    if (j >= t0 && j <= end) cp.push(j);
+    if (d >= t0 && d <= end) cp.push(d);
+  }
+  [S.intakeYear, gradDate.getFullYear(), aswoDate.getFullYear(), S.buyYear].forEach(yy => {
+    const d = new Date(yy,8,30);
+    if (d >= t0 && d <= end) cp.push(d);
+  });
+  cp.sort((a,b)=>a-b);
+  let bal = S.currentSavings;
+  const t = new Date(t0);
+  const rows = [];
+  cp.forEach(d => {
+    while (t <= d) {
+      const y = t.getFullYear();
+      let f = c.leftover;
+      if (t >= studyStart && t < gradDate) {
+        f = c.studyFlow;
+        const k = y - S.intakeYear;
+        if (t.getMonth()===8 && k>=0 && k<c.studyYears) bal -= c.perYear;
+      } else if (t >= gradDate && t < aswoDate) f = c.postFlow;
+      else if (t >= aswoDate) f = c.aswoFlow;
+      bal += f;
+      t.setMonth(t.getMonth()+1);
+    }
+    const y = d.getFullYear(), mm = d.getMonth();
+    let note = mm===11 ? "📆 年結" : "半年結";
+    if (mm===8) {
+      if (y===S.intakeYear) note = "🎓 入學（交咗第一期學費後）";
+      else if (y===gradDate.getFullYear()) note = "🎉 畢業";
+      else if (y===aswoDate.getFullYear()) note = "💼 升 ASWO 頭一年";
+      else if (y===S.buyYear) note = "🏡 買樓前檢查";
+    }
+    rows.push({ ym: y+"年"+String(mm+1).padStart(2,"0")+"月", amt: Math.round(bal), note });
+  });
+  return rows;
+}
+
+// ================= 渲染 =================
+const main = document.getElementById("main");
+const nav = document.getElementById("nav");
+
+function el(html) { const d = document.createElement("div"); d.innerHTML = html; return d.firstElementChild; }
+
+function field(label, key, hint, step) {
+  const f = el(`<div class="field"><label>${label}</label>
+    <input type="text" inputmode="decimal" data-key="${key}" value="${S[key]}">
+    ${hint?`<div class="hint">${hint}</div>`:""}</div>`);
+  f.querySelector("input").addEventListener("input", (e) => {
+    let v = parseFloat(e.target.value.replace(/[^0-9.]/g,""));
+    if (isNaN(v) || v < 0) v = 0;
+    S[key] = v; save();
+    render();
+    // 打字後保留捲動位置 + 焦點留喺原輸入框
+    const inp = document.querySelector(`input[data-key="${key}"]`);
+    if (inp) {
+      inp.focus();
+      inp.setSelectionRange(inp.value.length, inp.value.length);
+    }
+  });
+  return f;
+}
+
+function switchRow(title, sub, key) {
+  const r = el(`<div class="switch-row"><div><div class="t">${title}</div><div class="s">${sub}</div></div>
+    <label class="switch"><input type="checkbox" ${S[key]?"checked":""}><span class="track"></span><span class="dot"></span></label></div>`);
+  r.querySelector("input").addEventListener("change", (e) => { S[key] = e.target.checked; save(); render(); });
+  return r;
+}
+
+function stat(lb, val, hint, tone) {
+  return `<div class="stat"><div class="lb">${lb}</div>
+    <div class="val ${tone||""}">${val}</div>
+    ${hint?`<div class="hint">${hint}</div>`:""}</div>`;
+}
+
+// --- 總覽 ---
+function viewHome(c) {
+  const next = TASKS.find(t => !TASKDONE[t.id]);
+  const done = TASKS.filter(t => TASKDONE[t.id]).length;
+  const pts = balances();
+  const vals = pts.map(p=>p.balance);
+  const maxAbs = Math.max(1, ...vals.map(Math.abs));
+  const hasNeg = vals.some(v=>v<0);
+  const chartCols = pts.map(p => {
+    const h = Math.abs(p.balance)/maxAbs*96;
+    return `<div class="col"><div class="v">${fmtWan(p.balance)}</div>
+      <div class="bars"><div class="mid"></div>
+      ${p.balance>=0 ? `<div class="up" style="height:${h}px"></div>` : `<div class="dn" style="height:${h}px"></div>`}
+      </div><div class="y">${p.year}</div></div>`;
+  }).join("");
+
+  main.innerHTML = `
+    <div class="card">
+      <h2>而家呢步 🌱</h2>
+      <p class="desc">2026 年 10 月開工，儲第一桶金。主線係 2028 年城大兼讀 MSW（FTSS 慳 $10 萬），華富邨第 3 期（華景樓）清拆戶 2034-35 優先抽 ≥350 呎居屋。</p>
+      <div class="stats">
+        ${stat("每月可儲","$"+Math.round(c.leftover).toLocaleString("en-HK"),"扣強積金、租、爸爸、生活、應急、稅", c.leftover>=5000?"ok":"warn")}
+        ${stat(S.intakeYear+" 年入學積蓄", hkd(c.savingsAtIntake), "仲有 "+c.months+" 個月")}
+        ${stat("應急金（入學時）", hkd(c.emergencyAtIntake), "每月 $1,000 另存，出事先用")}
+        ${stat(S.buyYear+" 年買樓積蓄", hkd(c.savingsByBuy), S.hasFtss ? "已計 FTSS 減免（升學頁開咗）" : "未計 FTSS · 兼讀人工同開支按你設定")}
+      </div>
+      <div style="margin-top:10px">
+        <div class="prog-label"><span>每月儲蓄健康度</span><span>${Math.min(100, Math.round(c.leftover/7500*100))}%</span></div>
+        <div class="progress"><div style="width:${Math.min(100, c.leftover/7500*100)}%"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>而家條路線 🚦</h2>
+      <p class="desc">${SCHOOLS[S.school].nm} · ${S.mode==="pt"?"兼讀 "+S.ptYears+" 年":"全日制 "+S.ftYears+" 年"} · ${S.hasEnls?"有 ENLS":S.hasFtss?"FTSS 獎學金":"無政府貸款"}</p>
+      ${c.warnings.map(w=>`<div class="warnbox">${w}</div>`).join("")}
+      ${c.warnings.length===0?`<div class="okbox">按而家數字，兼讀 + 綠表呢條路行得通 🌸</div>`:""}
+    </div>
+
+    <div class="card">
+      <h2>每年年尾積蓄走勢 📊</h2>
+      <p class="desc">讀碩嗰幾年跌穿零＝唔夠錢，要開 ENLS／保住全職／遲一年入學。</p>
+      <div class="chart">${chartCols}</div>
+      ${hasNeg?`<div class="warnbox" style="margin-top:8px">粉色＝嗰年年尾積蓄係負數（要借／搵錢填）。</div>`:""}
+    </div>
+
+    <div class="card">
+      <h2>十年路線圖 🗺️</h2>
+      <div class="tl">
+        <div class="item"><div class="y">2026-10</div><div class="t">開工（PO $18,845）</div><div class="d">出糧即轉主儲蓄 $6,000 + 應急 $1,000。儲第一桶金。</div></div>
+        <div class="item"><div class="y">2027 春–秋</div><div class="t">考 IELTS + 核實戶籍</div><div class="d">3–11 月考都得，暑假考最理想；目標 6.0–6.5。去華富邨辦事處確認戶籍。</div></div>
+        <div class="item"><div class="y">2027 秋</div><div class="t">報名（5 間）· 趕唔切就 2029 入學</div><div class="d">城大第一、浸大第二（兼讀 2 年最快）；理大只收兼讀；港大照交搏一搏。</div></div>
+        <div class="item"><div class="y">${S.intakeYear}–${S.intakeYear + (S.mode==="pt"?S.ptYears:S.ftYears)}</div><div class="t">兼讀 MSW + 申請 FTSS</div><div class="d">夜晚＋週末上課；FTSS 可慳 $100,000（城大／理大／港大合資格）。</div></div>
+        <div class="item"><div class="y">${S.intakeYear + (S.mode==="pt"?S.ptYears:S.ftYears)}</div><div class="t">畢業 → 註冊 RSW → 升 ASWO</div><div class="d">起薪約 $37,585；浸大路線最早畢業。市道差預咗先做住 PO／社福助理級。</div></div>
+        <div class="item"><div class="y">2034–35</div><div class="t">華富邨第 3 期遷置 → 優先抽居屋</div><div class="d">綠表二人＋家有長者＋清拆戶優先，目標 ≥350 呎；綠置居（6 折）係後備。</div></div>
+      </div>
+    </div>
+
+    ${next ? `
+    <div class="card">
+      <h2>下一件要做 📌</h2>
+      <p class="desc">${done}/${TASKS.length} 項完成 · ${next.ph}</p>
+      <div class="task" onclick="toggleTask('${next.id}')">
+        <div class="box"></div>
+        <div><div class="tt">${next.t}</div><div class="dd">${next.d}</div></div>
+      </div>
+    ` : `<div class="card"><div class="okbox">全部待辦剔晒！去預算頁核對數字 🌸</div></div>`}
+  `;
+}
+
+// --- 預算 ---
+function viewBudget(c) {
+  main.innerHTML = `
+    <div class="card">
+      <h2>每月現金流 💰</h2>
+      <p class="desc">改任何一格，全部數字即時重計。</p>
+      <div id="budgetFields"></div>
+    </div>
+    <div class="card">
+      <h2>扣完之後 🧮</h2>
+      <div class="stats">
+        ${stat("強積金 5%", hkd(c.mpf))}
+        ${stat("實收", hkd(S.salary-c.mpf))}
+        ${stat("全年薪俸稅", hkd(c.taxM*12), "已計供養父母＋同住額外，PO 年薪基本零稅")}
+        ${stat("每月可儲", hkd(c.leftover), "已扣應急金", c.leftover>=5000?"ok":"warn")}
+      </div>
+    </div>`;
+  const box = document.getElementById("budgetFields");
+  box.appendChild(field("月薪（未扣強積金）","salary","你份 PO 人工 $18,845"));
+  box.appendChild(field("交租","rent","華富邨平租"));
+  box.appendChild(field("俾爸爸","dad","年 ≥ $12,000 先可以填報供養父母"));
+  box.appendChild(field("自己使（食、車、電話、雜費）","living","你預每月約 $5,000"));
+  box.appendChild(field("應急金（每月固定轉走）","emergency","儲到 3–6 個月生活費就夠，之後轉返主儲蓄"));
+  box.appendChild(field("而家手上積蓄","currentSavings","← 填你銀行真實餘額，路標會由呢度出發計"));
+
+  // --- 儲蓄路標 ---
+  const rows = milestones();
+  const rowHtml = rows.map(r => `
+    <div class="tuition-row">
+      <div><div class="tt">${r.ym} · ${r.note}</div></div>
+      <div class="amt" ${r.amt<0?'style="color:var(--warn)"':""}>${fmtWan(r.amt)}</div>
+    </div>`).join("");
+  const next = rows[0];
+  main.innerHTML = main.innerHTML + `
+    <div class="card">
+      <h2>儲蓄路標 📅</h2>
+      <p class="desc">每半年＋關鍵月份望一望：達標就維持，落後就揾慳法。每年 9 月交學費個位會「下插」——正常，唔使慌。</p>
+      <div class="stats" style="margin-bottom:10px">
+        ${stat("而家每月可儲", hkd(c.leftover))}
+        ${stat("下一個路標", hkd(next.amt), next.ym + " · " + next.note)}
+      </div>
+      ${rowHtml}
+      <div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
+        💡 想睇「保住全職讀兼讀」嘅版本？去升學頁將「兼讀期間月薪」改做 18,845，成條路標會即刻重計——你會見到條線完全唔同。每慳 $1,000／月，到買樓年就多 $99,000。
+      </div>
+    </div>`;
+
+  // --- 旅行錢包 ---
+  const tApr = Math.round(S.travelSave * 7);
+  const tJul = Math.round(S.travelSave * 22);
+  main.innerHTML = main.innerHTML + `
+    <div class="card">
+      <h2>旅行錢包 ✈️</h2>
+      <p class="desc">密密做嘢都要密密嘆！每月出糧日轉多一筆去第三個戶口「旅行」——主儲蓄照儲、應急金照轉，呢筆係令你成個計劃行得落嘅獎勵。</p>
+      <div id="travelFields"></div>
+      <div class="stats">
+        ${stat("2027 年 4 月可用", hkd(tApr), "台北 5 日 4 晚：機票約 $1,300–1,800 ＋ 住宿＋食＋交通約 $4,000–5,000")}
+        ${stat("2028 年 7 月可用", hkd(tJul), "大阪 6 日 5 晚：約 $8,500–10,000（機票來回約 $2,000–2,800）")}
+      </div>
+      <div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
+        💡 錢唔會少：2026-10 到 2028-09 主儲蓄照儲 + 應急金 $23,000 ＋旅行 $19,800——2028 年 9 月交第一期學費（$121,000）仍然夠。應急金永遠唔郁。兩程合計預算 ≈ $14,000–17,000。
+      </div>
+    </div>`;
+  const tf = document.getElementById("travelFields");
+  tf.appendChild(field("每月放入旅行錢包","travelSave","$900 ≈ 你可儲錢嘅 11%；之後有得加薪可以再調高"));
+}
+
+// --- 升學 ---
+function viewStudy(c) {
+  const schools = Object.keys(SCHOOLS).map(k => {
+    const s = SCHOOLS[k];
+    return `<button class="school ${S.school===k?"sel":""}" onclick="pickSchool('${k}')">
+      <div class="top"><span class="nm">${s.nm}</span><span class="fee">${hkd(s.pt)}（兼讀）</span></div>
+      <div class="pg">${s.pg}</div>
+      <div class="badges">
+        <span class="badge ${s.py<=2?"b-ok":""}">兼讀 ${s.py} 年</span>
+        ${s.fy===0?`<span class="badge">無全日制</span>`:`<span class="badge">FT ${s.fy} 年</span>`}
+        ${s.ftss?`<span class="badge b-ok">FTSS 合資格</span>`:`<span class="badge">無 FTSS</span>`}
+      </div>
+      <div class="note">${s.note}</div>
+      <div class="win">📅 ${s.win}</div>
+    </button>`;
+  }).join("");
+
+  const sched = [];
+  for (let k=0;k<c.studyYears;k++) sched.push(`<div class="tuition-row"><div><div class="tt">${S.intakeYear+k} 年 9 月 · 第 ${k+1} 期</div></div><div class="amt">${hkd(c.perYear)}</div></div>`);
+
+  main.innerHTML = `
+    <div class="card">
+      <h2>學校 🎓</h2>
+      <p class="desc">5 間都交，城大排第一、浸大第二。本地學士多數豁免 IELTS（自願考都歡迎）。</p>
+      ${schools}
+    </div>
+
+    <div class="card">
+      <h2>讀法 📖</h2>
+      <div class="row2" style="margin-bottom:12px">
+        <button class="btn ${S.mode==="pt"?"active":""}" onclick="pickMode('pt')">兼讀 ${S.ptYears} 年</button>
+        ${S.ftYears>0
+          ? `<button class="btn ${S.mode==="ft"?"active":""}" onclick="pickMode('ft')">全日制 ${S.ftYears} 年</button>`
+          : `<button class="btn" disabled style="opacity:.5">理大無全日制</button>`}
+      </div>
+      <div id="switches"></div>
+      <div class="row2" style="margin-top:6px">
+        <button class="btn ${S.intakeYear===2028?"active":""}" onclick="S.intakeYear=2028;save();render()">2028 建議</button>
+        <button class="btn ${S.intakeYear===2029?"active":""}" onclick="S.intakeYear=2029;save();render()">2029 後備</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>兼讀期間情境 💼</h2>
+      <div id="studyFields"></div>
+      <div class="stats">
+        ${stat("兼讀每月淨流", hkd(c.studyFlow), "人工 $7,500 − 開支 − 稅", c.studyFlow<0?"warn":"ok")}
+        ${stat("畢業一刻積蓄", hkd(c.balanceAtGrad), "負數＝唔夠錢", c.balanceAtGrad<0?"warn":"ok")}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>畢業後（保守估）🎯</h2>
+      <p class="desc">市道差，畢業唔一定即刻有 ASWO——先做住 PO／社福助理級，之後先跳。</p>
+      <div id="postFields"></div>
+    </div>
+
+    <div class="card">
+      <h2>學費分期時間表 📅</h2>
+      <p class="desc">每年 9 月交一年學費（實質分期以校方通知為準）。月頭先轉走 $5,000 學費專戶最穩陣。</p>
+      ${sched.join("")}
+      ${c.tuitionNeeded>0
+        ? `<div class="hint" style="font-size:11px;color:var(--muted)">每月要預留 ≈ ${hkd(c.perYear/12)}／月，另外預多 5% 雜費（申請費、實習交通等）。</div>`
+        : `<div class="okbox">ENLS 借晒學費，呢度唔使現金。</div>`}
+    </div>`;
+
+  const sw = document.getElementById("switches");
+  sw.appendChild(switchRow("有 ENLS 擔保人","年息 2.17%＋行政費 $285/年；畢業後最長 15 年還（「還款」頁有估算）","hasEnls"));
+  sw.appendChild(switchRow("有 FTSS 政府獎學金","本地生、審批制；上限補貼 $100,000（同 ENLS 二揀一）","hasFtss"));
+
+  const sf = document.getElementById("studyFields");
+  sf.appendChild(field("兼讀期間月薪","studySalary","你預轉 part-time 後得 $7,500"));
+
+  const pf = document.getElementById("postFields");
+  pf.appendChild(field("畢業後第一份工月薪","postGradSalary","保守：同而家 PO 一樣 $18,845"));
+  pf.appendChild(field("幾多個月後先升 ASWO","aswoDelay","保守：12 個月（市道差可以拉到 24）"));
+  pf.appendChild(field("ASWO 月薪","aswoSalary","社署 MPS 16 ≈ $37,585；NGO 可能低一兩點（~$31,000）"));
+}
+
+// --- 居屋 ---
+function viewHos(c) {
+  main.innerHTML = `
+    <div class="card">
+      <h2>申請組合 🏡</h2>
+      <p class="desc">綠表二人家庭 · 爸爸聯名業主 · 2028 年滿 60 歲入家有長者 · 華富邨第 3 期（華景樓）清拆戶優先 · 目標 ≥ 33 m² / 350 呎</p>
+      <div class="badges">
+        <span class="badge b-blue">綠表</span>
+        <span class="badge b-blue">二人家庭</span>
+        <span class="badge b-ok">家有長者 ${c.dadAgeAtBuy} 歲</span>
+        <span class="badge b-ok">華富邨清拆戶優先</span>
+        <span class="badge">白表：不適用（綠表免審查）</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>樓價同按揭 🏦</h2>
+      <p class="desc">綠表最高 95% 按揭、免壓測（供款 ≤ 家庭入息 50%）、30 年、政府 50 年擔保。</p>
+      <div class="row2" style="margin-bottom:12px">
+        ${[2032,2034,2036].map(y=>`<button class="btn ${S.buyYear===y?"active":""}" onclick="S.buyYear=${y};save();render()">${y} 年買樓</button>`).join("")}
+      </div>
+      <div id="hosFields"></div>
+      <div class="row2" style="margin-bottom:12px">
+        ${[1800000,2200000,2800000].map(p=>`<button class="btn small ${S.hosPrice===p?"active":""}" onclick="S.hosPrice=${p};save();render()">${p/10000}萬</button>`).join("")}
+      </div>
+      <div class="field"><label>按揭利率 <span id="rateLabel">${(S.rate*100).toFixed(1)}%</span></label>
+        <input type="range" min="0.025" max="0.05" step="0.001" value="${S.rate}" id="rateSlider"></div>
+      <div class="stats">
+        ${stat("綠表首期 5%", hkd(c.down))}
+        ${stat("月供", hkd(c.monthlyMortgage), "30 年 · 佔 ASWO " + Math.round(c.monthlyMortgage/S.aswoSalary*100) + "%", c.monthlyMortgage/S.aswoSalary>0.4?"warn":"ok")}
+        ${stat("ASWO 月薪", hkd(S.aswoSalary), "升學頁可調低")}
+        ${stat("做 ASWO 後每月可儲", hkd(c.aswoFlow))}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>記住 📌</h2>
+      <p class="desc" style="line-height:1.7">
+        🌷 房委會 2024 年 12 月公佈：華富邨第 3 期（華景樓＋華翠樓）清拆提早 6 年，2034 年第 2 季遷入新華富邨第 1 期（原定 2040-41）。<br>
+        🌷 2026–2030 唔好買。一買就唔係重建戶，又冇咗 $3,000 平租。<br>
+        🌷 綠表申請：截止前 24 個月至買入期間不得持有住宅物業；綠表免入息／資產審查。<br>
+        🌷 綠置居係替代方案：市價 6 折、280 呎起；揀樓次序＝清拆影響家庭第一、家有長者第二。<br>
+        🌷 戶籍唔好刪任何人。買居屋爸爸一定要做聯名業主，兩個人一齊搬。
+      </p>
+    </div>`;
+
+  document.getElementById("hosFields").appendChild(
+    field("目標樓價","hosPrice","2026 年居屋 280–560 呎售約 $150–480 萬；350 呎大約 $200–300 萬，視乎地區"));
+  const slider = document.getElementById("rateSlider");
+  slider.addEventListener("input", (e) => {
+    S.rate = parseFloat(e.target.value); save();
+    document.getElementById("rateLabel").textContent = (S.rate*100).toFixed(1) + "%";
+  });
+  slider.addEventListener("change", () => render());
+}
+
+// --- 還款 ---
+function viewRepay(c) {
+  const rPct = (S.enlsRate*100).toFixed(2);
+  const enlsOn = !!S.hasEnls;
+  const gradY = c.gradYear;
+  const endY = gradY + S.enlsYears;
+  const enlsRatio = S.aswoSalary > 0 ? c.enlsMonthly / S.aswoSalary : 0;
+  const postEnlsRatio = c.postFlow > 0 ? c.enlsMonthly / c.postFlow : 0;
+  const w = c.burdenRatio > 0.5
+    ? `<div class="warnbox">每月總負擔佔 ASWO 人工 <b>${Math.round(c.burdenRatio*100)}%</b>，超咗綠表供款比率上限 50%（免壓測都要守）。出路：揀平啲屋苑／細呎數／綠置居（6 折），或者買之前先將 ENLS 還多啲。</div>`
+    : (c.burdenRatio > 0.4
+      ? `<div class="warnbox">每月總負擔佔 ASWO 人工 ${Math.round(c.burdenRatio*100)}%——條數實得（未計管理費、差餉），買之前先睇返銀行實際報價。</div>`
+      : `<div class="okbox">ENLS 月還 ＋ 居屋月供一齊嚟，都只佔 ASWO 人工 ${Math.round(c.burdenRatio*100)}%，未過 50% 上限 🌸</div>`);
+
+  main.innerHTML = `
+    <div class="card">
+      <h2>學費貸款 ENLS 💳</h2>
+      <p class="desc">學資處官方（2026-27）：只借學費（每年 ≤ 當年學費；終身限額 $419,400）、年利率 ${rPct}%（2025-12-01 調整）、行政費 $285／年（教資會院校）、畢業起最長 15 年還款、每期至少 $100。同 FTSS 二揀一。</p>
+      ${enlsOn ? "" : `<div class="warnbox">升學頁未開「有 ENLS 擔保人」——以下係假設借晒嘅估算（唔會計入總負擔）。真係要借，先搵定彌償人：21 歲＋香港永久居民＋有穩定人工，佢要簽「彌償契據」。</div>`}
+      <div class="row2" style="margin-bottom:10px">
+        ${[10,15].map(y=>`<button class="btn ${S.enlsYears===y?"active":""}" onclick="S.enlsYears=${y};save();render()">${y} 年還</button>`).join("")}
+      </div>
+      <div class="field"><label>年利率 <input id="enlsRateInput" type="text" inputmode="decimal" value="${rPct}" style="width:76px;text-align:right;margin-left:6px;font-size:16px;"> %</label>
+        <div class="hint">官方 2026-27：2.173%。改呢度可以睇息口上落嘅影響。</div></div>
+      <div class="stats">
+        ${stat("畢業時總欠款", hkd(c.enlsTotal), "學費 "+hkd(S.tuition)+"＋在學利息＋行政費")}
+        ${stat("每月還款", hkd(c.enlsMonthly), S.enlsYears+" 年 · 年息 "+rPct+"%", enlsRatio>0.3?"warn":"ok")}
+        ${stat("還款完結", endY+" 年", "畢業 "+gradY+" 年後開始還")}
+        ${stat("利息＋行政費", hkd(c.enlsInt + c.enlsAdmin), "利息 "+hkd(c.enlsInt)+" ＋ 行政費 "+hkd(c.enlsAdmin))}
+      </div>
+      <div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
+        💡 畢業後頭 ${Math.round(S.aswoDelay)} 個月係 PO 人工：ENLS 每月還款佔當時淨流 ${Math.round(postEnlsRatio*100)}%（困難時可申請延期還款，免息最多 2 年，總期可去 17 年）。
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>居屋月供 🏡</h2>
+      <p class="desc">綠表 95% 按揭 · ${S.years} 年 · 利率 ${(S.rate*100).toFixed(1)}%（喺「居屋」頁調）</p>
+      <div class="stats">
+        ${stat("目標樓價", hkd(S.hosPrice))}
+        ${stat("首期 5%", hkd(c.down), "綠表免壓測")}
+        ${stat("月供", hkd(c.monthlyMortgage), S.years+" 年 · 月供佔 ASWO "+Math.round(c.monthlyMortgage/S.aswoSalary*100)+"%", c.monthlyMortgage/S.aswoSalary>0.4?"warn":"ok")}
+        ${stat("月供佔 ASWO", Math.round(c.monthlyMortgage/S.aswoSalary*100)+"%", "綠表供款比率上限 50%")}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>一齊還：每月總負擔 📊</h2>
+      <p class="desc">讀完書照還 ENLS，同時供樓（如果 ${S.buyYear} 年買到）。</p>
+      ${w}
+      <div class="stats">
+        ${stat("每月總負擔", hkd(c.monthlyBurden), enlsOn ? "ENLS "+hkd(c.enlsMonthly)+" ＋ 月供 "+hkd(c.monthlyMortgage) : "月供 "+hkd(c.monthlyMortgage)+"（未開 ENLS）")}
+        ${stat("佔 ASWO 月薪", Math.round(c.burdenRatio*100)+"%", "綠表免壓測 · 上限 50%", c.burdenRatio>0.4?"warn":"ok")}
+        ${stat("ASWO 月薪", hkd(S.aswoSalary), "升學頁可調")}
+        ${stat("買樓前每月剩", hkd(c.aswoLeftover), "仲住緊華富邨（仍交租 $"+S.rent.toLocaleString("en-HK")+" 嘅保守版）", c.aswoLeftover<2000?"warn":"ok")}
+      </div>
+      <div id="hosMgmtField"></div>
+      <div class="stats">
+        ${stat("買樓後每月多返", hkd(S.rent - S.hosMgmtFee), "慳返租 ＋"+hkd(S.rent)+"，改交管理費差餉 −"+hkd(S.hosMgmtFee))}
+        ${stat("買樓後實際每月剩", hkd(c.aswoLeftoverBuy), "已扣管理費、差餉、地租", c.aswoLeftoverBuy<2000?"warn":"ok")}
+      </div>
+      ${!enlsOn?`<div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px">上面總負擔未計 ENLS：升學頁開返個掣就計埋。</div>`:""}
+    </div>`;
+
+  const rateIn = document.getElementById("enlsRateInput");
+  if (rateIn) rateIn.addEventListener("input", (e) => {
+    let v = parseFloat(e.target.value.replace(/[^0-9.]/g,""));
+    if (isNaN(v) || v<0) v = 2.173;
+    S.enlsRate = v/100; save(); render();
+    const inp = document.getElementById("enlsRateInput");
+    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  });
+
+  const mgmtBox = document.getElementById("hosMgmtField");
+  if (mgmtBox) mgmtBox.appendChild(field("買樓後 管理費＋差餉＋地租（每月）","hosMgmtFee","買咗居屋就唔使再交華富邨租（慳 $3,000），改為交呢筆。350 呎居屋一般約 $1,000–1,500。"));
+}
+
+// --- 待辦 ---
+const PHASE_ORDER = ["而家","開工後","2027 春–秋","2027 秋","2028","2030-31","2032–35"];
+const PHASE_ICON = { "而家":"🌱", "開工後":"💼", "2027 春–秋":"✏️", "2027 秋":"🎓", "2028":"📚", "2030-31":"🎉", "2032–35":"🏡" };
+
+function viewTasks() {
+  const phases = {};
+  TASKS.forEach(t => { (phases[t.ph] = phases[t.ph]||[]).push(t); });
+  const keys = Object.keys(phases).sort((a,b) => PHASE_ORDER.indexOf(a) - PHASE_ORDER.indexOf(b));
+  const html = keys.map(ph => `
+    <div class="phase">${PHASE_ICON[ph]||"📌"} ${ph}</div>
+    ${phases[ph].map(t => `
+      <div class="task ${TASKDONE[t.id]?"done":""}" onclick="toggleTask('${t.id}')">
+        <div class="box">${TASKDONE[t.id]?"✓":""}</div>
+        <div><div class="tt">${t.t}</div><div class="dd">${t.d}</div></div>
+      </div>`).join("")}`).join("");
+  main.innerHTML = `<div class="card"><h2>待辦清單 ✅</h2><p class="desc">按時間線排好：由而家一路去到 2032–35 買樓。</p>${html}
+    <button class="btn small" style="margin-top:8px" onclick="resetTasks()">重設待辦</button></div>`;
+}
+
+// ================= 事件 =================
+window.pickSchool = function(k) {
+  const s = SCHOOLS[k];
+  S.school = k;
+  if (s.fy === 0) S.mode = "pt";
+  S.tuition = S.mode==="pt" ? s.pt : (s.ft ?? s.pt);
+  S.ptYears = s.py; S.ftYears = s.fy;
+  save(); render();
+};
+window.pickMode = function(m) {
+  S.mode = m;
+  const s = SCHOOLS[S.school];
+  S.tuition = m==="pt" ? s.pt : (s.ft ?? s.pt);
+  save(); render();
+};
+window.toggleTask = function(id) {
+  TASKDONE[id] = !TASKDONE[id];
+  saveTasks(); render();
+};
+window.resetTasks = function() { TASKDONE = {}; saveTasks(); render(); };
+
+function render() {
+  const sy = window.scrollY;
+  const c = compute();
+  if (TAB==="home") viewHome(c);
+  else if (TAB==="budget") viewBudget(c);
+  else if (TAB==="study") viewStudy(c);
+  else if (TAB==="hos") viewHos(c);
+  else if (TAB==="repay") viewRepay(c);
+  else viewTasks();
+  document.querySelectorAll("#nav button").forEach(b => {
+    b.classList.toggle("on", b.dataset.tab===TAB);
+  });
+  window.scrollTo(0, sy);
+}
+
+nav.addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  TAB = b.dataset.tab;
+  render();
+  window.scrollTo(0, 0); // 轉 tab 跳返頂部
+});
+
+document.getElementById("btnReset").addEventListener("click", () => {
+  if (confirm("重設晒所有數字同待辦？")) {
+    S = Object.assign({}, DEFAULTS);
+    TASKDONE = {};
+    save(); saveTasks(); render();
+  }
+});
+document.getElementById("btnTheme").addEventListener("click", cycleTheme);
+document.getElementById("btnBackup").addEventListener("click", () => {
+  document.getElementById("backupModal").classList.remove("hidden");
+});
+document.getElementById("backupModal").addEventListener("click", (e) => {
+  if (e.target.id === "backupModal") e.target.classList.add("hidden");
+});
+window.exportBackup = function() {
+  const data = { v:1, exportedAt:new Date().toISOString(), state:S, tasks:TASKDONE, theme:THEME };
+  const blob = new Blob([JSON.stringify(data, null, 1)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "\u83ef\u666f\u8a08\u528b\u5099\u4efd_" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+};
+window.importBackup = function(ev) {
+  const f = ev.target.files[0]; if (!f) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const d = JSON.parse(fr.result);
+      if (!d || typeof d !== "object") throw 0;
+      if (d.state) { S = Object.assign({}, DEFAULTS, d.state); save(); }
+      if (d.tasks) { TASKDONE = d.tasks; saveTasks(); }
+      if (d.theme === "blue" || d.theme === "dark") { THEME = d.theme; applyTheme(); }
+      render();
+      alert("\u9084\u539f\u5b8c\u50d1\uff01");
+    } catch(e) { alert("\u9019\u500b\u4e0d\u4f3c\u5099\u4efd\u6a94\uff0c\u9e60\u9ebb\u9078\u8a06\u53e6\u4e00\u4efd\u3002"); }
+  };
+  fr.readAsText(f);
+};
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("./sw.js").catch(() => {}); });
+}
+
+applyTheme();
+render();
+</script>
+</body>
+</html>
