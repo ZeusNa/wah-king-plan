@@ -1,5 +1,6 @@
 // 華景計劃 PWA 快取 + 離線
-const CACHE = "wah-king-plan-v1";
+// v2：index.html 行 network-first（更新先傳），其他資產 cache-first；舊 cache 喺 activate 時清除
+const CACHE = "wah-king-plan-v2";
 const ASSETS = [
   "./", "./index.html", "./manifest.webmanifest",
   "./icon-192.png", "./icon-512.png",
@@ -19,6 +20,18 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
+  // 頁面/文件：network-first —— 有更新即刻見到；斷網先落返 cache
+  if (e.request.mode === "navigate" || e.request.destination === "document") {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        const cp = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, cp));
+        return res;
+      }).catch(() => caches.match(e.request).then(hit => hit || caches.match("./index.html")))
+    );
+    return;
+  }
+  // 其他：cache-first
   e.respondWith(
     caches.match(e.request).then(hit =>
       hit || fetch(e.request).then(res => {
