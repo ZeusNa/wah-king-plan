@@ -197,6 +197,8 @@
   .tuition-row .tt { font-size: 13px; }
   .tuition-row .amt { font-size: 16px; font-weight: 700; }
   .hidden { display: none; }
+  /* 備份 modal：inline style 有 display:flex，必須用 !important 蓋過先可以真正關閉 */
+  #backupModal.hidden { display: none !important; }
 
   /* ============ 🌃 深色模式（雨夜城市 · Rainy City Window） ============ */
   body[data-theme="dark"] {
