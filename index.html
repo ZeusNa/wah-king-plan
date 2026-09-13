@@ -756,16 +756,7 @@ function viewBudget(c) {
     <div class="card">
       <h2>扣完之後 🧮</h2>
       <div class="stats" id="budgetStats">${budgetStatsHtml(c)}</div>
-    </div>`;
-  const box = document.getElementById("budgetFields");
-  box.appendChild(field("月薪（未扣強積金）","salary","你份 PO 人工 $18,845"));
-  box.appendChild(field("交租","rent","華富邨平租"));
-  box.appendChild(field("俾爸爸","dad","年 ≥ $12,000 先可以填報供養父母"));
-  box.appendChild(field("自己使（食、車、電話、雜費）","living","你預每月約 $5,000"));
-  box.appendChild(field("應急金（每月固定轉走）","emergency","儲到 3–6 個月生活費就夠，之後轉返主儲蓄"));
-  box.appendChild(field("而家手上積蓄","currentSavings","← 填你銀行真實餘額，路標會由呢度出發計"));
-
-  main.innerHTML = main.innerHTML + `
+    </div>
     <div class="card">
       <h2>儲蓄路標 📅</h2>
       <p class="desc">每半年＋關鍵月份望一望：達標就維持，落後就揾慳法。每年 9 月交學費個位會「下插」——正常，唔使慌。</p>
@@ -773,9 +764,7 @@ function viewBudget(c) {
       <div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
         💡 想睇「保住全職讀兼讀」嘅版本？去升學頁將「兼讀期間月薪」改做 18,845，成條路標會即刻重計——你會見到條線完全唔同。每慳 $1,000／月，到買樓年就多 $99,000。
       </div>
-    </div>`;
-
-  main.innerHTML = main.innerHTML + `
+    </div>
     <div class="card">
       <h2>旅行錢包 ✈️</h2>
       <p class="desc">密密做嘢都要密密嘆！每月出糧日轉多一筆去第三個戶口「旅行」——主儲蓄照儲、應急金照轉，呢筆係令你成個計劃行得落嘅獎勵。</p>
@@ -785,6 +774,15 @@ function viewBudget(c) {
         💡 錢唔會少：2026-10 到 2028-09 主儲蓄照儲 + 應急金 $23,000 ＋旅行 $19,800——2028 年 9 月交第一期學費（$121,000）仍然夠。應急金永遠唔郁。兩程合計預算 ≈ $14,000–17,000。
       </div>
     </div>`;
+
+  // ⚠️ 所有輸入框必須喺最後先 append——一旦再 set main.innerHTML 就會殺晒佢哋嘅 listener
+  const box = document.getElementById("budgetFields");
+  box.appendChild(field("月薪（未扣強積金）","salary","你份 PO 人工 $18,845"));
+  box.appendChild(field("交租","rent","華富邨平租"));
+  box.appendChild(field("俾爸爸","dad","年 ≥ $12,000 先可以填報供養父母"));
+  box.appendChild(field("自己使（食、車、電話、雜費）","living","你預每月約 $5,000"));
+  box.appendChild(field("應急金（每月固定轉走）","emergency","儲到 3–6 個月生活費就夠，之後轉返主儲蓄"));
+  box.appendChild(field("而家手上積蓄","currentSavings","← 填你銀行真實餘額，路標會由呢度出發計"));
   const tf = document.getElementById("travelFields");
   tf.appendChild(field("每月放入旅行錢包","travelSave","$900 ≈ 你可儲錢嘅 11%；之後有得加薪可以再調高"));
 }
