@@ -589,19 +589,47 @@ function field(label, key, hint, step) {
   const f = el(`<div class="field"><label>${label}</label>
     <input type="text" inputmode="decimal" data-key="${key}" value="${S[key]}">
     ${hint?`<div class="hint">${hint}</div>`:""}</div>`);
-  f.querySelector("input").addEventListener("input", (e) => {
+  const inp = f.querySelector("input");
+  inp.addEventListener("input", (e) => {
     let v = parseFloat(e.target.value.replace(/[^0-9.]/g,""));
     if (isNaN(v) || v < 0) v = 0;
     S[key] = v; save();
-    render();
-    // 打字後保留捲動位置 + 焦點留喺原輸入框
-    const inp = document.querySelector(`input[data-key="${key}"]`);
-    if (inp) {
-      inp.focus();
-      inp.setSelectionRange(inp.value.length, inp.value.length);
-    }
+    softUpdate(key);
   });
+  // 唔再每打一個字都重建 DOM（手機／iOS 鍵盤先唔會跳走）；放手後先整理格式
+  inp.addEventListener("change", (e) => { e.target.value = S[key]; });
   return f;
+}
+
+// 打字時只重畫「計出嚟嘅數字」，輸入框本身唔郁
+function softUpdate(editedKey) {
+  try {
+    if (TAB === "budget") {
+      const c = compute();
+      const bs = document.getElementById("budgetStats");
+      if (bs) bs.innerHTML = budgetStatsHtml(c);
+      const mb = document.getElementById("milestoneBody");
+      if (mb) mb.innerHTML = milestoneBodyHtml(c);
+      const ts = document.getElementById("travelStats");
+      if (ts) ts.innerHTML = travelStatsHtml();
+      return;
+    }
+    if (TAB === "repay") {
+      const c = compute();
+      const es = document.getElementById("enlsStats");
+      if (es) es.innerHTML = enlsStatsHtml(c);
+      const ms = document.getElementById("mortStats");
+      if (ms) ms.innerHTML = mortStatsHtml(c);
+      const rc = document.getElementById("repayCombined");
+      if (rc) rc.innerHTML = repayWarnHtml(c) + repayStats1Html(c);
+      const rc2 = document.getElementById("repayCombined2");
+      if (rc2) rc2.innerHTML = repayStats2Html(c);
+      return;
+    }
+  } catch (e) {}
+  render();
+  const inp = document.querySelector(`input[data-key="${editedKey}"]`);
+  if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
 }
 
 function switchRow(title, sub, key) {
@@ -688,6 +716,36 @@ function viewHome(c) {
 }
 
 // --- 預算 ---
+function budgetStatsHtml(c) {
+  return `
+        ${stat("強積金 5%", hkd(c.mpf))}
+        ${stat("實收", hkd(S.salary-c.mpf))}
+        ${stat("全年薪俸稅", hkd(c.taxM*12), "已計供養父母＋同住額外，PO 年薪基本零稅")}
+        ${stat("每月可儲", hkd(c.leftover), "已扣應急金", c.leftover>=5000?"ok":"warn")}`;
+}
+function milestoneBodyHtml(c) {
+  const rows = milestones();
+  const rowHtml = rows.map(r => `
+    <div class="tuition-row">
+      <div><div class="tt">${r.ym} · ${r.note}</div></div>
+      <div class="amt" ${r.amt<0?'style="color:var(--warn)"':""}>${fmtWan(r.amt)}</div>
+    </div>`).join("");
+  const next = rows[0] || { amt: 0, ym: "—", note: "" };
+  return `
+      <div class="stats" style="margin-bottom:10px">
+        ${stat("而家每月可儲", hkd(c.leftover))}
+        ${stat("下一個路標", hkd(next.amt), next.ym + " · " + next.note)}
+      </div>
+      ${rowHtml}`;
+}
+function travelStatsHtml() {
+  const tApr = Math.round(S.travelSave * 7);
+  const tJul = Math.round(S.travelSave * 22);
+  return `
+        ${stat("2027 年 4 月可用", hkd(tApr), "台北 5 日 4 晚：機票約 $1,300–1,800 ＋ 住宿＋食＋交通約 $4,000–5,000")}
+        ${stat("2028 年 7 月可用", hkd(tJul), "大阪 6 日 5 晚：約 $8,500–10,000（機票來回約 $2,000–2,800）")}`;
+}
+
 function viewBudget(c) {
   main.innerHTML = `
     <div class="card">
@@ -697,12 +755,7 @@ function viewBudget(c) {
     </div>
     <div class="card">
       <h2>扣完之後 🧮</h2>
-      <div class="stats">
-        ${stat("強積金 5%", hkd(c.mpf))}
-        ${stat("實收", hkd(S.salary-c.mpf))}
-        ${stat("全年薪俸稅", hkd(c.taxM*12), "已計供養父母＋同住額外，PO 年薪基本零稅")}
-        ${stat("每月可儲", hkd(c.leftover), "已扣應急金", c.leftover>=5000?"ok":"warn")}
-      </div>
+      <div class="stats" id="budgetStats">${budgetStatsHtml(c)}</div>
     </div>`;
   const box = document.getElementById("budgetFields");
   box.appendChild(field("月薪（未扣強積金）","salary","你份 PO 人工 $18,845"));
@@ -712,40 +765,22 @@ function viewBudget(c) {
   box.appendChild(field("應急金（每月固定轉走）","emergency","儲到 3–6 個月生活費就夠，之後轉返主儲蓄"));
   box.appendChild(field("而家手上積蓄","currentSavings","← 填你銀行真實餘額，路標會由呢度出發計"));
 
-  // --- 儲蓄路標 ---
-  const rows = milestones();
-  const rowHtml = rows.map(r => `
-    <div class="tuition-row">
-      <div><div class="tt">${r.ym} · ${r.note}</div></div>
-      <div class="amt" ${r.amt<0?'style="color:var(--warn)"':""}>${fmtWan(r.amt)}</div>
-    </div>`).join("");
-  const next = rows[0];
   main.innerHTML = main.innerHTML + `
     <div class="card">
       <h2>儲蓄路標 📅</h2>
       <p class="desc">每半年＋關鍵月份望一望：達標就維持，落後就揾慳法。每年 9 月交學費個位會「下插」——正常，唔使慌。</p>
-      <div class="stats" style="margin-bottom:10px">
-        ${stat("而家每月可儲", hkd(c.leftover))}
-        ${stat("下一個路標", hkd(next.amt), next.ym + " · " + next.note)}
-      </div>
-      ${rowHtml}
+      <div id="milestoneBody">${milestoneBodyHtml(c)}</div>
       <div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
         💡 想睇「保住全職讀兼讀」嘅版本？去升學頁將「兼讀期間月薪」改做 18,845，成條路標會即刻重計——你會見到條線完全唔同。每慳 $1,000／月，到買樓年就多 $99,000。
       </div>
     </div>`;
 
-  // --- 旅行錢包 ---
-  const tApr = Math.round(S.travelSave * 7);
-  const tJul = Math.round(S.travelSave * 22);
   main.innerHTML = main.innerHTML + `
     <div class="card">
       <h2>旅行錢包 ✈️</h2>
       <p class="desc">密密做嘢都要密密嘆！每月出糧日轉多一筆去第三個戶口「旅行」——主儲蓄照儲、應急金照轉，呢筆係令你成個計劃行得落嘅獎勵。</p>
       <div id="travelFields"></div>
-      <div class="stats">
-        ${stat("2027 年 4 月可用", hkd(tApr), "台北 5 日 4 晚：機票約 $1,300–1,800 ＋ 住宿＋食＋交通約 $4,000–5,000")}
-        ${stat("2028 年 7 月可用", hkd(tJul), "大阪 6 日 5 晚：約 $8,500–10,000（機票來回約 $2,000–2,800）")}
-      </div>
+      <div class="stats" id="travelStats">${travelStatsHtml()}</div>
       <div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
         💡 錢唔會少：2026-10 到 2028-09 主儲蓄照儲 + 應急金 $23,000 ＋旅行 $19,800——2028 年 9 月交第一期學費（$121,000）仍然夠。應急金永遠唔郁。兩程合計預算 ≈ $14,000–17,000。
       </div>
@@ -893,15 +928,6 @@ function viewHos(c) {
 function viewRepay(c) {
   const rPct = (S.enlsRate*100).toFixed(2);
   const enlsOn = !!S.hasEnls;
-  const gradY = c.gradYear;
-  const endY = gradY + S.enlsYears;
-  const enlsRatio = S.aswoSalary > 0 ? c.enlsMonthly / S.aswoSalary : 0;
-  const postEnlsRatio = c.postFlow > 0 ? c.enlsMonthly / c.postFlow : 0;
-  const w = c.burdenRatio > 0.5
-    ? `<div class="warnbox">每月總負擔佔 ASWO 人工 <b>${Math.round(c.burdenRatio*100)}%</b>，超咗綠表供款比率上限 50%（免壓測都要守）。出路：揀平啲屋苑／細呎數／綠置居（6 折），或者買之前先將 ENLS 還多啲。</div>`
-    : (c.burdenRatio > 0.4
-      ? `<div class="warnbox">每月總負擔佔 ASWO 人工 ${Math.round(c.burdenRatio*100)}%——條數實得（未計管理費、差餉），買之前先睇返銀行實際報價。</div>`
-      : `<div class="okbox">ENLS 月還 ＋ 居屋月供一齊嚟，都只佔 ASWO 人工 ${Math.round(c.burdenRatio*100)}%，未過 50% 上限 🌸</div>`);
 
   main.innerHTML = `
     <div class="card">
@@ -913,57 +939,79 @@ function viewRepay(c) {
       </div>
       <div class="field"><label>年利率 <input id="enlsRateInput" type="text" inputmode="decimal" value="${rPct}" style="width:76px;text-align:right;margin-left:6px;font-size:16px;"> %</label>
         <div class="hint">官方 2026-27：2.173%。改呢度可以睇息口上落嘅影響。</div></div>
-      <div class="stats">
-        ${stat("畢業時總欠款", hkd(c.enlsTotal), "學費 "+hkd(S.tuition)+"＋在學利息＋行政費")}
-        ${stat("每月還款", hkd(c.enlsMonthly), S.enlsYears+" 年 · 年息 "+rPct+"%", enlsRatio>0.3?"warn":"ok")}
-        ${stat("還款完結", endY+" 年", "畢業 "+gradY+" 年後開始還")}
-        ${stat("利息＋行政費", hkd(c.enlsInt + c.enlsAdmin), "利息 "+hkd(c.enlsInt)+" ＋ 行政費 "+hkd(c.enlsAdmin))}
-      </div>
-      <div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
-        💡 畢業後頭 ${Math.round(S.aswoDelay)} 個月係 PO 人工：ENLS 每月還款佔當時淨流 ${Math.round(postEnlsRatio*100)}%（困難時可申請延期還款，免息最多 2 年，總期可去 17 年）。
-      </div>
+      <div id="enlsStats">${enlsStatsHtml(c)}</div>
     </div>
 
     <div class="card">
       <h2>居屋月供 🏡</h2>
       <p class="desc">綠表 95% 按揭 · ${S.years} 年 · 利率 ${(S.rate*100).toFixed(1)}%（喺「居屋」頁調）</p>
-      <div class="stats">
-        ${stat("目標樓價", hkd(S.hosPrice))}
-        ${stat("首期 5%", hkd(c.down), "綠表免壓測")}
-        ${stat("月供", hkd(c.monthlyMortgage), S.years+" 年 · 月供佔 ASWO "+Math.round(c.monthlyMortgage/S.aswoSalary*100)+"%", c.monthlyMortgage/S.aswoSalary>0.4?"warn":"ok")}
-        ${stat("月供佔 ASWO", Math.round(c.monthlyMortgage/S.aswoSalary*100)+"%", "綠表供款比率上限 50%")}
-      </div>
+      <div id="mortStats">${mortStatsHtml(c)}</div>
     </div>
 
     <div class="card">
       <h2>一齊還：每月總負擔 📊</h2>
       <p class="desc">讀完書照還 ENLS，同時供樓（如果 ${S.buyYear} 年買到）。</p>
-      ${w}
-      <div class="stats">
-        ${stat("每月總負擔", hkd(c.monthlyBurden), enlsOn ? "ENLS "+hkd(c.enlsMonthly)+" ＋ 月供 "+hkd(c.monthlyMortgage) : "月供 "+hkd(c.monthlyMortgage)+"（未開 ENLS）")}
-        ${stat("佔 ASWO 月薪", Math.round(c.burdenRatio*100)+"%", "綠表免壓測 · 上限 50%", c.burdenRatio>0.4?"warn":"ok")}
-        ${stat("ASWO 月薪", hkd(S.aswoSalary), "升學頁可調")}
-        ${stat("買樓前每月剩", hkd(c.aswoLeftover), "仲住緊華富邨（仍交租 $"+S.rent.toLocaleString("en-HK")+" 嘅保守版）", c.aswoLeftover<2000?"warn":"ok")}
-      </div>
+      <div id="repayCombined">${repayWarnHtml(c) + repayStats1Html(c)}</div>
       <div id="hosMgmtField"></div>
-      <div class="stats">
-        ${stat("買樓後每月多返", hkd(S.rent - S.hosMgmtFee), "慳返租 ＋"+hkd(S.rent)+"，改交管理費差餉 −"+hkd(S.hosMgmtFee))}
-        ${stat("買樓後實際每月剩", hkd(c.aswoLeftoverBuy), "已扣管理費、差餉、地租", c.aswoLeftoverBuy<2000?"warn":"ok")}
-      </div>
-      ${!enlsOn?`<div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px">上面總負擔未計 ENLS：升學頁開返個掣就計埋。</div>`:""}
+      <div id="repayCombined2">${repayStats2Html(c)}</div>
     </div>`;
 
   const rateIn = document.getElementById("enlsRateInput");
   if (rateIn) rateIn.addEventListener("input", (e) => {
     let v = parseFloat(e.target.value.replace(/[^0-9.]/g,""));
     if (isNaN(v) || v<0) v = 2.173;
-    S.enlsRate = v/100; save(); render();
-    const inp = document.getElementById("enlsRateInput");
-    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+    S.enlsRate = v/100; save(); softUpdate("enlsRate");
   });
 
   const mgmtBox = document.getElementById("hosMgmtField");
   if (mgmtBox) mgmtBox.appendChild(field("買樓後 管理費＋差餉＋地租（每月）","hosMgmtFee","買咗居屋就唔使再交華富邨租（慳 $3,000），改為交呢筆。350 呎居屋一般約 $1,000–1,500。"));
+}
+
+// --- 還款 page builders（softUpdate 用） ---
+function repayWarnHtml(c) {
+  return c.burdenRatio > 0.5
+    ? `<div class="warnbox">每月總負擔佔 ASWO 人工 <b>${Math.round(c.burdenRatio*100)}%</b>，超咗綠表供款比率上限 50%（免壓測都要守）。出路：揀平啲屋苑／細呎數／綠置居（6 折），或者買之前先將 ENLS 還多啲。</div>`
+    : (c.burdenRatio > 0.4
+      ? `<div class="warnbox">每月總負擔佔 ASWO 人工 ${Math.round(c.burdenRatio*100)}%——條數實得（未計管理費、差餉），買之前先睇返銀行實際報價。</div>`
+      : `<div class="okbox">ENLS 月還 ＋ 居屋月供一齊嚟，都只佔 ASWO 人工 ${Math.round(c.burdenRatio*100)}%，未過 50% 上限 🌸</div>`);
+}
+function enlsStatsHtml(c) {
+  const rPct = (S.enlsRate*100).toFixed(2);
+  const enlsRatio = S.aswoSalary > 0 ? c.enlsMonthly / S.aswoSalary : 0;
+  const postEnlsRatio = c.postFlow > 0 ? c.enlsMonthly / c.postFlow : 0;
+  return `
+      <div class="stats">
+        ${stat("畢業時總欠款", hkd(c.enlsTotal), "學費 "+hkd(S.tuition)+"＋在學利息＋行政費")}
+        ${stat("每月還款", hkd(c.enlsMonthly), S.enlsYears+" 年 · 年息 "+rPct+"%", enlsRatio>0.3?"warn":"ok")}
+        ${stat("還款完結", (c.gradYear + S.enlsYears)+" 年", "畢業 "+c.gradYear+" 年後開始還")}
+        ${stat("利息＋行政費", hkd(c.enlsInt + c.enlsAdmin), "利息 "+hkd(c.enlsInt)+" ＋ 行政費 "+hkd(c.enlsAdmin))}
+      </div>
+      <div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">
+        💡 畢業後頭 ${Math.round(S.aswoDelay)} 個月係 PO 人工：ENLS 每月還款佔當時淨流 ${Math.round(postEnlsRatio*100)}%（困難時可申請延期還款，免息最多 2 年，總期可去 17 年）。
+      </div>`;
+}
+function mortStatsHtml(c) {
+  return `
+        ${stat("目標樓價", hkd(S.hosPrice))}
+        ${stat("首期 5%", hkd(c.down), "綠表免壓測")}
+        ${stat("月供", hkd(c.monthlyMortgage), S.years+" 年 · 月供佔 ASWO "+Math.round(c.monthlyMortgage/S.aswoSalary*100)+"%", c.monthlyMortgage/S.aswoSalary>0.4?"warn":"ok")}
+        ${stat("月供佔 ASWO", Math.round(c.monthlyMortgage/S.aswoSalary*100)+"%", "綠表供款比率上限 50%")}`;
+}
+function repayStats1Html(c) {
+  const enlsOn = !!S.hasEnls;
+  return `
+      <div class="stats">
+        ${stat("每月總負擔", hkd(c.monthlyBurden), enlsOn ? "ENLS "+hkd(c.enlsMonthly)+" ＋ 月供 "+hkd(c.monthlyMortgage) : "月供 "+hkd(c.monthlyMortgage)+"（未開 ENLS）")}
+        ${stat("佔 ASWO 月薪", Math.round(c.burdenRatio*100)+"%", "綠表免壓測 · 上限 50%", c.burdenRatio>0.4?"warn":"ok")}
+        ${stat("ASWO 月薪", hkd(S.aswoSalary), "升學頁可調")}
+        ${stat("買樓前每月剩", hkd(c.aswoLeftover), "仲住緊華富邨（仍交租 $"+S.rent.toLocaleString("en-HK")+" 嘅保守版）", c.aswoLeftover<2000?"warn":"ok")}
+      </div>`;
+}
+function repayStats2Html(c) {
+  return `
+        ${stat("買樓後每月多返", hkd(S.rent - S.hosMgmtFee), "慳返租 ＋"+hkd(S.rent)+"，改交管理費差餉 −"+hkd(S.hosMgmtFee))}
+        ${stat("買樓後實際每月剩", hkd(c.aswoLeftoverBuy), "已扣管理費、差餉、地租", c.aswoLeftoverBuy<2000?"warn":"ok")}
+      ${!S.hasEnls?`<div class="hint" style="font-size:11px;color:var(--muted);margin-top:6px">上面總負擔未計 ENLS：升學頁開返個掣就計埋。</div>`:""}`;
 }
 
 // --- 待辦 ---
